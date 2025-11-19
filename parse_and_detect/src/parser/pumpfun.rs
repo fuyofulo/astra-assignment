@@ -19,7 +19,6 @@ pub enum TradeType {
 pub struct ParsedTransaction {
     pub signature: String,
     pub slot: u64,
-    pub block_time: i64,
     pub signer: String,
     pub mint: String,
     pub trade_type: TradeType,

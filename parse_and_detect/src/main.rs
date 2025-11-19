@@ -5,6 +5,7 @@ use solana_sdk::signature::Signature;
 use solana_transaction_status::UiTransactionEncoding;
 use std::env;
 use std::str::FromStr;
+use dotenvy::dotenv;
 
 mod detect;
 mod parser;
@@ -12,15 +13,18 @@ use detect::{DetectorConfig, LamportsExt, detect_wide_attacks};
 use parser::pumpfun::TradeType;
 
 fn main() {
+    dotenv().ok();
+
     let args: Vec<String> = env::args().collect();
     let mint_address_str = args.get(1).expect("Add a token mint address arg!");
     let mint_address = Pubkey::from_str(mint_address_str).expect("Invalid Address");
 
-    let rpc_url = "https://mainnet.helius-rpc.com/?api-key=almost-commited-this-omg";
+    let api_key = env::var("HELIUS_API_KEY").expect("HELIUS_API_KEY must be set in .env file");
+    let rpc_url = format!("https://mainnet.helius-rpc.com/?api-key={}", api_key);
     let client = RpcClient::new(rpc_url.to_string());
 
     let signatures_config = GetConfirmedSignaturesForAddress2Config {
-        limit: Some(500),
+        limit: Some(50),
         before: None,
         until: None,
         commitment: None,
