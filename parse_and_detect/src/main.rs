@@ -12,14 +12,14 @@ mod parser;
 use detect::{DetectorConfig, LamportsExt, detect_wide_attacks};
 use parser::pumpfun::TradeType;
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
 
     let args: Vec<String> = env::args().collect();
-    let mint_address_str = args.get(1).expect("Add a token mint address arg!");
-    let mint_address = Pubkey::from_str(mint_address_str).expect("Invalid Address");
+    let mint_address_str = args.get(1).ok_or("Error: Missing token mint address argument. Usage: cargo run <MINT_ADDRESS>")?;
+    let mint_address = Pubkey::from_str(mint_address_str).map_err(|_| "Error: Invalid token mint address format")?;
 
-    let api_key = env::var("HELIUS_API_KEY").expect("HELIUS_API_KEY must be set in .env file");
+    let api_key = env::var("HELIUS_API_KEY").map_err(|_| "Error: HELIUS_API_KEY environment variable must be set in .env file")?;
     let rpc_url = format!("https://mainnet.helius-rpc.com/?api-key={}", api_key);
     let client = RpcClient::new(rpc_url.to_string());
 
@@ -34,7 +34,7 @@ fn main() {
 
     let signatures = client
         .get_signatures_for_address_with_config(&mint_address, signatures_config)
-        .unwrap();
+        .map_err(|e| format!("Error: Failed to fetch transaction signatures: {}", e))?;
 
     println!(
         "Found {} signatures. Fetching transactions...",
@@ -42,7 +42,8 @@ fn main() {
     );
 
     for tx_info in signatures {
-        let signature = Signature::from_str(&tx_info.signature).unwrap();
+        let signature = Signature::from_str(&tx_info.signature)
+            .map_err(|e| format!("Error: Invalid signature format '{}': {}", tx_info.signature, e))?;
 
         let config = RpcTransactionConfig {
             encoding: Some(UiTransactionEncoding::JsonParsed),
@@ -186,6 +187,8 @@ fn main() {
             println!();
         }
     }
+
+    Ok(())
 }
 
 fn short_sig(sig: &str) -> String {

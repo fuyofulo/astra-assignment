@@ -55,7 +55,6 @@ pub fn parse_transaction(
 
     let signer = message.account_keys.first()?.pubkey.clone();
     let slot = tx.slot;
-    let block_time = tx.block_time.unwrap_or(0);
 
     let mut decoded = scan_instruction_stream(message.instructions.iter().enumerate());
 
@@ -151,7 +150,6 @@ pub fn parse_transaction(
 
             Some(ParsedTransaction {                signature: signature.to_string(),
                 slot,
-                block_time,
                 signer,
                 mint: mint_address.to_string(),
                 trade_type: decoded.trade_type,

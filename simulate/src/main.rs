@@ -89,10 +89,18 @@ impl PumpAmmState {
     }
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Enter hypothetical victim SOL input (e.g., 1 for 1 SOL): ");
     let stdin = io::stdin();
-    let victim_sol_in_f = stdin.lock().lines().next().unwrap().unwrap().trim().parse::<f64>().unwrap();
+    let victim_sol_in_f: f64 = stdin
+        .lock()
+        .lines()
+        .next()
+        .ok_or("Error: No input provided")?
+        .map_err(|e| format!("Error: Failed to read input: {}", e))?
+        .trim()
+        .parse()
+        .map_err(|e| format!("Error: Invalid number format. Please enter a valid number: {}", e))?;
     let victim_sol_in = (victim_sol_in_f * LAMPORTS_PER_SOL as f64) as u64;
     let victim_min_tokens = (victim_sol_in / 2) * TOKEN_DECIMALS / LAMPORTS_PER_SOL;
 
@@ -133,4 +141,6 @@ fn main() {
 
     let total_net = net_be + net_profit;
     println!("\nBot Total Net Profit: {:.6} SOL", total_net);
+
+    Ok(())
 }
